@@ -1,5 +1,5 @@
 from lxml import etree
-import imaplib
+import imaplib, smtplib
 
 def getLabelMails(login):
 	try:
@@ -30,5 +30,26 @@ def parseTemp(templatePath):
 def pickEmail(xpath, mailBlob):
 	return 
 
-def sendMail(address):
-	return #sends mail to address (using a template for that?) and returns success code
+def sendEmail(login, mailData): #mailData is a dictionary
+	FROM = login['username']
+	TO = [mailData['to']] #must be a list
+	SUBJECT = mailData['subject']
+	TEXT = mailData['text']
+
+	# Prepare actual message
+	message = """\From: %s\nTo: %s\nSubject: %s\n\n%s
+	""" % (FROM, ", ".join(TO), SUBJECT, TEXT)
+	try:
+		#server = smtplib.SMTP(SERVER) 
+		server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+		server.ehlo()
+		server.starttls()
+		server.login(login['username'], login['password'])
+		server.sendmail(FROM, TO, message)
+		server.close()
+		print 'Successfully sent the mail'
+		return TRUE
+	except:
+		print "Failed to send mail"
+		return FALSE
+
