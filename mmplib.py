@@ -47,9 +47,9 @@ def sendEmail(login, mailData): #mailData is a dictionary
 		server.login(login['username'], login['password'])
 		server.sendmail(FROM, TO, message)
 		server.close()
-		print 'Successfully sent the mail'
+		print('Successfully sent the mail')
 		return TRUE
 	except:
-		print "Failed to send mail"
+		print("Failed to send mail")
 		return FALSE
 
