@@ -9,8 +9,11 @@ login['password'] = f.readline().rstrip('\n')
 login['label'] = f.readline().rstrip('\n')
 f.close()
 
+#let's connect
+mail = mmplib.imapConnect(login)
+
 #get the mails that are in the label (ordered by id)
-idList = mmplib.getLabelMails(login)
+idList = mmplib.getLabelMails(login, mail)
 
 #fetch'em
 for i in range(0,len(idList)):
@@ -20,3 +23,4 @@ for i in range(0,len(idList)):
 	#here goes the template parsing, the matching and the mail sending
 	#and the archiviation too
 
+mmplib.imapDisconnect(mail)
