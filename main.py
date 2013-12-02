@@ -29,7 +29,7 @@ for i in range(0,len(idList)):
 	print(email.utils.parseaddr(emailMessage['From']))
 	print(emailMessage.items()) # print all headers
 
-	#this gets the body, cleaned and ready for lxml
+	#this gets the body, cleaned
 	print(mmplib.getMultipartMailText(emailMessage))
 
 	#here goes the template parsing, the matching and the mail sending

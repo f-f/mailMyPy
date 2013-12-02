@@ -1,5 +1,5 @@
 from lxml import etree
-import imaplib, smtplib, email
+import imaplib, smtplib, email, re
 
 
 ###### IMAP
@@ -30,6 +30,22 @@ def getLabelMails(login, mail): #mail is the imap handler
 	idList = ids[0].split() # ids[0] is a space separated string
 
 	return idList
+
+def parseUid(data):
+    match = re.compile('\d+ \(UID (?P<uid>\d+)\)').match(data)
+    return match.group('uid')
+
+#### NEEDS TESTING!
+def moveMail(uid,destLabel,mail):
+	resp, data = imap.fetch(uid, "(UID)")
+	#msgUid = parseUid(data[0])
+	msgUid = uid
+
+	result = imap.uid('COPY', msgUid, '<destination folder>')
+
+	if result[0] == 'OK':
+		mov, data = imap.uid('STORE', msgUid , '+FLAGS', '(\Deleted)')
+		imap.expunge()
 
 ###### Email
 
@@ -78,6 +94,10 @@ def parseTemp(templatePath):
 	#doc = etree.parse(f)
 	return #it returns an xpath, actually unused, the xpaths list is stored in xpaths.py
 
-#given an xpath, it returns the email from the Blob
-def pickEmail(xpath, mailBlob):
-	return
+#given a path, it returns the data from the mail
+def pickData(xpath, mailBody):
+	parser = etree.XMLParser(remove_blank_text=True, recover=True)
+	myTree = etree.XML(mailBody, parser)
+
+	r = myTree.xpath('/div')
+	return r
