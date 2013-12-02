@@ -1,4 +1,4 @@
-import imaplib, mmplib
+import imaplib, mmplib, email
 
 # dict for credentials
 login = {}
@@ -18,7 +18,19 @@ idList = mmplib.getLabelMails(login, mail)
 #fetch'em
 for i in range(0,len(idList)):
 	
-	rawEmail = mail.fetch(idList[i], "(UID BODY[TEXT])")
+	result, data = mail.uid('fetch', idList[-i-1], '(RFC822)') #"(UID BODY[TEXT])")
+	rawEmail = data[0][1]
+
+	#convert the ugly raw in something better
+	emailMessage = email.message_from_bytes(rawEmail)
+
+	#some useful stuff to print?
+	print(emailMessage['To'])
+	print(email.utils.parseaddr(emailMessage['From']))
+	print(emailMessage.items()) # print all headers
+
+	#this gets the body, cleaned and ready for lxml
+	print(mmplib.getMultipartMailText(emailMessage))
 
 	#here goes the template parsing, the matching and the mail sending
 	#and the archiviation too
