@@ -90,14 +90,22 @@ def sendEmail(login, mailData): #mailData is a dictionary
 
 ###### Xpath
 
-def parseTemp(templatePath):
-	#doc = etree.parse(f)
-	return #it returns an xpath, actually unused, the xpaths list is stored in xpaths.py
-
 #given a path, it returns the data from the mail
-def pickData(xpath, mailBody):
+def pickData(mypath, mailBody):
 	parser = etree.XMLParser(remove_blank_text=True, recover=True)
 	myTree = etree.XML(mailBody, parser)
 
-	r = myTree.xpath('/div')
+	r = myTree.xpath(mypath + ".string()")
 	return r
+
+#pathsList example:
+# pL = [ {email: em@example.com, paths: [{name: "email", path: "/example/..."}, ...]}, ...]
+
+#this function picks the list with the templates and checks if matches, then picks the data
+def matchTemplates(pathsList,FROM, mailBody):
+	data = {}
+	for item in pathsList:
+		if FROM == item['email']: # <== template matching is here
+			for paths in item['paths'] #item['paths'] is a list for data, that contains a dict
+				data[paths['name']] = pickData(paths['path'],mailBody)
+	return data

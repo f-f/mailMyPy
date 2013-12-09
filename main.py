@@ -1,4 +1,4 @@
-import imaplib, mmplib, email
+import imaplib, mmplib, email, string
 
 # dict for credentials
 login = {}
@@ -25,14 +25,23 @@ for i in range(0,len(idList)):
 	emailMessage = email.message_from_bytes(rawEmail)
 
 	#some useful stuff to print?
-	print(emailMessage['To'])
-	print(email.utils.parseaddr(emailMessage['From']))
-	print(emailMessage.items()) # print all headers
+	#print(emailMessage['To'])
+	#print(emailMessage.items()) # print all headers
+
+	#parsing the FROM field
+	rawFROM = email.utils.parseaddr(emailMessage['From'])
+	FROM = rawFROM[(string.find(rawFROM,"<")):string.find(rawFROM,">") + 1)]
 
 	#this gets the body, cleaned
 	print(mmplib.getMultipartMailText(emailMessage))
 
-	#here goes the template parsing, the matching and the mail sending
-	#and the archiviation too
+	#pathsList is a dictionary from an external file
+	myDataList = matchTemplates(pathsList, FROM, rawEmail)
+
+	mailData['to'] = myDataList['email']
+	mailData['subject'] = "some subject"
+	mailData['text'] = "so text"
+
+	sendEmail(login,mailData)
 
 mmplib.imapDisconnect(mail)
