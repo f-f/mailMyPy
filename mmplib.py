@@ -32,8 +32,8 @@ def getLabelMails(login, mail): #mail is the imap handler
 	return idList
 
 def parseUid(data):
-    match = re.compile('\d+ \(UID (?P<uid>\d+)\)').match(data)
-    return match.group('uid')
+	match = re.compile('\d+ \(UID (?P<uid>\d+)\)').match(data)
+	return match.group('uid')
 
 #### NEEDS TESTING!
 def moveMail(uid,destLabel,mail):
@@ -53,13 +53,15 @@ def moveMail(uid,destLabel,mail):
 # multiple payloads (plaintext/ html), you must parse each message separately
 # This function is taken from a stackoverflow post:
 def getMultipartMailText(emailMessage):
-    maintype = emailMessage.get_content_maintype()
-    if maintype == 'multipart':
-        for part in emailMessage.get_payload():
-            if part.get_content_maintype() == 'text':
-                return part.get_payload()
-    elif maintype == 'text':
-        return emailMessage.get_payload()
+	maintype = emailMessage.get_content_maintype()
+	if maintype == 'multipart':
+		payload = []
+		for part in emailMessage.get_payload():
+			if part.get_content_maintype() == 'text':
+				payload.append(part.get_payload(decode=True).decode('utf-8'))
+		return ''.join(payload).encode('ascii','ignore')
+	elif maintype == 'text':
+		return emailMessage.get_payload().encode('ascii','ignore')
 
 
 ###### SMTP
@@ -77,7 +79,7 @@ def sendEmail(login, mailData): #mailData is a dictionary
 		#server = smtplib.SMTP(SERVER) 
 		server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
 		server.ehlo()
-		server.starttls()
+		#server.starttls()
 		server.login(login['username'], login['password'])
 		server.sendmail(FROM, TO, message)
 		server.close()
@@ -92,11 +94,11 @@ def sendEmail(login, mailData): #mailData is a dictionary
 
 #given a path, it returns the data from the mail
 def pickData(mypath, mailBody):
-	parser = etree.XMLParser(remove_blank_text=True, recover=True)
-	myTree = etree.XML(mailBody, parser)
-
-	r = myTree.xpath(mypath + ".string()")
-	return r
+	myTree = etree.HTML(mailBody)
+	r = myTree.xpath(mypath)
+	if len(r)==0:
+		r.append("")
+	return r[0]
 
 #pathsList example:
 # pL = [ {email: em@example.com, paths: [{name: "email", path: "/example/..."}, ...]}, ...]
@@ -106,6 +108,6 @@ def matchTemplates(pathsList,FROM, mailBody):
 	data = {}
 	for item in pathsList:
 		if FROM == item['email']: # <== template matching is here
-			for paths in item['paths'] #item['paths'] is a list for data, that contains a dict
+			for paths in item['paths']: #item['paths'] is a list for data, that contains a dict
 				data[paths['name']] = pickData(paths['path'],mailBody)
 	return data
